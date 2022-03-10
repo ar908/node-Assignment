@@ -1,38 +1,53 @@
-const express = require("express");
+const express = require('express');
 const mongoose = require('mongoose');
-const userRoutes = require("./routes/user");
-const loginRoutes = require("./routes/login");
-const postRoutes = require("./routes/posts");
-const SECRET = "RESTAPI";
-var jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
+SECRET = "RESTAPI"
 
-mongoose.connect('mongodb://localhost:27017/restapi');
-const app = express();
+const loginRoutes = require("./routes/login")
+const userRoutes = require("./routes/users")
+const postRoutes = require("./routes/posts")
 
-app.use("/api/v1/posts", (req, res, next) =>{
-    var token = req.headers.authorization.split("test ")[1];
+
+const app = express()
+const port = 3000
+
+mongoose.connect('mongodb://localhost:27017/assignment_5')
+
+
+
+app.use("/posts",(req,res,next)=>{
+
+    var token = req.headers.authorization.split("Bearer ")[1];
     if(!token){
         return res.status(401).json({
-            status: "failed",
-            message: "Token is missing"
+            status:"failed",
+            message:"token is missing"
         })
     }
-    // verify the toke
-    jwt.verify(token, SECRET, async function(err, decoded) {
+    jwt.verify(token,SECRET,function(err,decoded){
         if(err){
             return res.status(401).json({
                 status:"failed",
-                message: "Invalid token"
+                message:"invalid token"
             })
         }
-        req.user = decoded.data;
-        next();
-    });
-});
-
-// app.use("/api/v1/users", userRoutes);
-app.use("/api/v1", loginRoutes);
-app.use("/api/v1", postRoutes);
+        else{
+            req.user = decoded.data
+            next();
+        }
+    })
+})
 
 
-app.listen(5000, () => console.log("server is started"));
+app.use("/",loginRoutes)
+app.use("/users",userRoutes)
+app.use("/",postRoutes)
+
+
+
+
+
+
+app.listen(port, () => {
+    console.log(`Example app listening on port ${port}`)
+  })
